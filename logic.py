@@ -97,5 +97,33 @@ class CheckFile(object):
         self.start_date = start_date
         self.end_date = end_date
 
+    def differ(self):
+        for path in self.list_of_paths:
+            path_1 = path.my_entry1.get()
+            path_2 = path.my_entry2.get()
+
+            if (path_1 != "") & (path_2 != ""):
+                try:
+                    files_a = CheckFile.filtered_files(path_1, self.start_date, self.end_date)
+                    files_b = CheckFile.filtered_files(path_2, self.start_date, self.end_date)
+
+                except BaseException as e:
+                    print("Błąd: ",e)
 
 
+    @staticmethod
+    def filtered_files(path, data_1, data_2):
+
+        for file in os.listdir(path):
+            file_date = str(datetime.datetime.fromtimestamp(os.stat(os.path.join(path, file))[stat.ST_MTIME]))
+            if str(data_1) <= file_date[:10] <= str(data_2):
+                yield (file, file_date)
+
+
+class Raport():
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def save_raport(path):
+        pass
