@@ -68,14 +68,13 @@ obj_with_diff = None
 def obj_diff():
     global obj_with_diff
     obj_with_diff = logic.CheckFile(list_of_paths, cal_1.get_date(), cal_2.get_date())
-
-
+    obj_with_diff.differ(frame_infos,dif_status)
 # UTWORZENIE GŁÓWNYCH PRZYCISKÓW
 main_batton_start = ttk.Button(frame_buttons, text="PORÓWNAJ FOLDERY",
                                command=(lambda: obj_diff()))
 main_batton_start.grid(column=0, row=0, padx=18, pady=10)
 main_batton_raport = ttk.Button(frame_buttons, text="ZAPISZ RAPORT", command=lambda:
-obj_with_diff.differ() if obj_with_diff is not None
+obj_with_diff.differ(frame_infos,dif_status) if obj_with_diff is not None
 else print("Najpierw porównaj foldery"))
 
 main_batton_raport.grid(column=1, row=0, padx=18, pady=10)

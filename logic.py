@@ -2,7 +2,11 @@ from tkinter import *
 from tkinter import ttk
 from tkcalendar import *
 from tkinter import filedialog
-import datetime, os, stat
+import datetime
+import os
+import stat
+from anything import Anything as any
+
 
 # KLASA ODPOWIADAJĄCA ZA WCZYTYWANIE ŚCIEŻEK ORAZ FORMATÓW, ZAPIS USTAWIEŃ DO PLIKU I ICH ODCZYT Z PLIKU
 
@@ -39,7 +43,7 @@ class MyPath(object):
         self.frame_formats.grid(column=0, row=2, columnspan=4)
 
         self.my_label = ttk.Label(self.frame_path_formats, text="Podaj rozszerzenia plków po przecinku, bez spacji i"
-                                                                   " kropki. Np. txt,docx,pdf,xlsx -->", wraplength=300)
+                                                                "kropki. Np. txt,docx,pdf,xlsx -->", wraplength=300)
         self.my_label.grid(column=0, row=3, pady=10, padx=20, columnspan=2)
 
         MyPath.pos_row += 3
@@ -55,7 +59,7 @@ class MyPath(object):
             self.path_A = path
 
         else:
-            self.my_entry2.delete(0,"end")
+            self.my_entry2.delete(0, "end")
             self.my_entry2.insert(0, path)
             self.path_B = path
 
@@ -97,30 +101,112 @@ class CheckFile(object):
         self.start_date = start_date
         self.end_date = end_date
 
-    def differ(self):
+    def differ(self, frame_infos, dif_status):
+        # DLA KAŻDEGO OBIEKTU Z ŚCIEŻKAMI POBIERA ŚCIEZKI I FORMATY
+        number = 0
+
         for path in self.list_of_paths:
             path_1 = path.my_entry1.get()
             path_2 = path.my_entry2.get()
+            format_set = path.my_entry3.get()
 
             if (path_1 != "") & (path_2 != ""):
                 try:
-                    files_a = CheckFile.filtered_files(path_1, self.start_date, self.end_date)
-                    files_b = CheckFile.filtered_files(path_2, self.start_date, self.end_date)
+                    # NA PODSTAWIE DAT, SCIEZEK I FORMATOW FILTRUJE PLIKI DLA SANYCH SCIEZEK I PRZECHOWUJE JAKO ZBIÓR
+                    # TUPLI
+                    files_a = set(CheckFile.filtered_files(path_1, self.start_date, self.end_date, format_set))
+                    files_b = set(CheckFile.filtered_files(path_2, self.start_date, self.end_date, format_set))
+
+                    # ROZNICA ZBIOROW ZWRACA ZBIOR PLIKOW Z PIERWSZEGO FOLDERU KTORE ROZNIA W DRUGIM FOLDERZE
+                    files_dif_a_b = list(files_a-files_b)
+                    files_dif_b_a = list(files_b-files_a)
+
+                    if set(files_dif_a_b) != set() or set(files_dif_b_a) != set():
+                        dif_status[number].config(text='X')
+
+                    else:
+                        dif_status[number].config(text='V')
+
+
+
+
+                    # LISTY POMOCNOCZE DO SPRAWDZENIA CZY ELEMENT Z ROZNICY WYNIKA Z BRAKU PLIKU CZY Z MODYFIKACJI
+                    # SPRAWDZENIE ODBYWA SIE NA PODSTAWIE PIERWSZEGO ELEMENTU Z TUPLI CZYLI PO NAZWIE
+                    exist_check_list_a = [file[0] for file in files_a]
+                    exist_check_list_b = [file[0] for file in files_b]
+
+                    CheckFile.prepare_to_raport(path_1, path_2, files_b, files_dif_a_b, exist_check_list_b, 1)
+                    print("==============")
+                    CheckFile.prepare_to_raport(path_2, path_1, files_a, files_dif_b_a, exist_check_list_a, 2)
+
+
 
                 except BaseException as e:
-                    print("Błąd: ",e)
+                    print("Błąd: ", e)
+            else:
+                dif_status[number].config(text='-')
+
+            number += 1
+
+    @staticmethod
+    def filtered_files(path, data_1, data_2, format_set):
+        # DLA KAŻDEGO PLIKU SPRADZA JEGO FORMAT I DATE UTWORZENIA
+        for file in os.listdir(path):
+            file_format = file[str(file).index(".")+1:]
+            file_date = str(datetime.datetime.fromtimestamp(os.stat(os.path.join(path, file))[stat.ST_MTIME]))
+
+            # SRPAWDZENIE CZY PLIK ZNAJDUJE SIE W ZAKRESIE DAT I CZY MA ODPOWIEDNIE ROZSZERZENIE
+            if format_set.split(",") != ['']:
+                if (str(data_1) <= file_date[:10] <= str(data_2)) and file_format in format_set:
+                    yield file, file_date
+            # SPRAWDZA TYLKO ZAKRES DAT
+            else:
+                if str(data_1) <= file_date[:10] <= str(data_2):
+                    yield file, file_date
 
 
     @staticmethod
-    def filtered_files(path, data_1, data_2):
+    def prepare_to_raport(path_1, path_2, files, files_dif, check_list, num_of_path):
+        # SPRAWDZANIE CZY PLIK Z ZBIORU ROZNIC ZNAJDUJE SIE W PLIKACH DRUGIEGO FOLDERU
+        # JEŚLI TAK TO ZNACZY ZE ROZNIA SIE DATA A JESLI GO NIE MA TO ZNACZY ZE BRAKUJE TAKIEGO PLIKU
+        # WYKORZYSTANO MODUL ANYTHING DO SPRAWDZENIA INDEKSU TUPLI ZNAJAC TYLKO NAZWĘ DZIEKI CZEMU MOZNA UZySKAC PEŁNE
+        # DANE O NAZWIE I DACIE
 
-        for file in os.listdir(path):
-            file_date = str(datetime.datetime.fromtimestamp(os.stat(os.path.join(path, file))[stat.ST_MTIME]))
-            if str(data_1) <= file_date[:10] <= str(data_2):
-                yield (file, file_date)
+        lista_of_file_pairs = []
+        list_dict_data = {}
 
+        for file_dif in files_dif:
 
-class Raport():
+            if file_dif[0] in check_list:
+                if num_of_path == 1:
+                    files = list(files)
+                    # SPRAWDZENIE INDEKSU TUPLI W LIŚCIE ZNAJAC TYLKO PIERWSZY ELEMENT TUPLI
+                    index = files.index((file_dif[0], any))
+                    lista_of_file_pairs.append((file_dif,files[index]))
+                else:
+                    files = list(files)
+                    # SPRAWDZENIE INDEKSU TUPLI W LIŚCIE ZNAJAC TYLKO PIERWSZY ELEMENT TUPLI
+                    index = files.index((file_dif[0], any))
+                    lista_of_file_pairs.append((files[index], file_dif))
+
+                # print("Plik", file_dif, "istnieje w ścieżce", path_2, " ale ma inną datę")
+                files = list(files)
+
+                index = files.index((file_dif[0], any))
+                # print("Plik z sciezki", path_2, " to:", files[index])
+
+            else:
+                if num_of_path == 1:
+                    lista_of_file_pairs.append((file_dif, "----------"))
+                else:
+                    lista_of_file_pairs.append(("----------", file_dif))
+                # print("Pliku", file_dif, "brakuje w ścieżce", path_2)
+
+        list_dict_data.setdefault((path_1, path_2), lista_of_file_pairs)
+
+        print(list_dict_data)
+
+class Raport(object):
     def __init__(self):
         pass
 
