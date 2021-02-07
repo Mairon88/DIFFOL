@@ -41,7 +41,7 @@ text_cal_1.grid(column=0, row=0, pady=10, padx=20)
 cal_1 = DateEntry(frame_calendars, width=12, background='darkblue', foreground='white', borderwidth=2,
                   date_pattern='y-mm-dd')
 cal_1.grid(column=1, row=0, pady=10, padx=10)
-start_date = cal_1.get_date()
+
 
 # USTAWIANIE DATY KOŃCOWEJ
 text_cal_2 = Label(frame_calendars, text="DATA KOŃCOWA")
@@ -49,7 +49,7 @@ text_cal_2.grid(column=0, row=1, pady=10, padx=20)
 cal_2 = DateEntry(frame_calendars, width=12, background='darkblue', foreground='white', borderwidth=2,
                   date_pattern='y-mm-dd')
 cal_2.grid(column=1, row=1, pady=10, padx=10)
-end_date = cal_1.get_date()
+
 # RAMKA DLA PRZYCISKÓW
 frame_buttons = ttk.LabelFrame(frame1, text="Sprawdź różnice w folderach, zapisz raport z wynikami "
                                             "lub wyjdź z programu")
@@ -75,7 +75,8 @@ main_batton_start = ttk.Button(frame_buttons, text="PORÓWNAJ FOLDERY",
 main_batton_start.grid(column=0, row=0, padx=18, pady=10)
 
 main_batton_raport = ttk.Button(frame_buttons, text="ZAPISZ RAPORT", command=lambda:
-logic.Report.save_raport(logic.CheckFile.data_for_report, start_date, end_date) if obj_with_diff is not None
+logic.Report.save_raport(logic.CheckFile.data_for_report, cal_1.get_date(), cal_2.get_date()) if obj_with_diff
+                                                                                                 is not None
 else print("Najpierw porównaj foldery"))
 main_batton_raport.grid(column=1, row=0, padx=18, pady=10)
 

@@ -138,13 +138,15 @@ class CheckFile(object):
 
                 except BaseException as e:
                     print("Błąd: ", e)
+                    dif_status[number].config(text='Error')
             else:
                 dif_status[number].config(text='-')
 
             number += 1
 
     @staticmethod
-    def filtered_files(path, data_1, data_2, format_set):
+    def filtered_files(path, start_date, end_date, format_set):
+
         # DLA KAŻDEGO PLIKU SPRADZA JEGO FORMAT I DATE UTWORZENIA
         for file in os.listdir(path):
             file_format = file[str(file).index(".")+1:]
@@ -152,11 +154,11 @@ class CheckFile(object):
 
             # SRPAWDZENIE CZY PLIK ZNAJDUJE SIE W ZAKRESIE DAT I CZY MA ODPOWIEDNIE ROZSZERZENIE
             if format_set.split(",") != ['']:
-                if (str(data_1) <= file_date[:10] <= str(data_2)) and file_format in format_set:
+                if (str(start_date) <= file_date[:10] <= str(end_date)) and file_format in format_set:
                     yield file, file_date
             # SPRAWDZA TYLKO ZAKRES DAT
             else:
-                if str(data_1) <= file_date[:10] <= str(data_2):
+                if str(start_date) <= file_date[:10] <= str(end_date):
                     yield file, file_date
 
     @staticmethod
