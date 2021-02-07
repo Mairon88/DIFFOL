@@ -102,9 +102,19 @@ class CheckFile(object):
         self.end_date = end_date
         CheckFile.data_for_report = {}
 
-    def differ(self, dif_status):
+    def differ(self, dif_status, report_status, report_info_1, report_info_2):
         # DLA KAŻDEGO OBIEKTU Z ŚCIEŻKAMI POBIERA ŚCIEZKI I FORMATY
         number = 0
+
+        def show_info(info):
+            if info == report_status:
+                report_status.config(text='Przygotowano dane do raportu')
+
+            elif info == report_info_1:
+                report_info_1.config(text="Nazwa raportu: -")
+
+            elif info == report_info_2:
+                report_info_2.config(text="Ścieżka raportu: -",wraplength=500)
 
         for path in self.list_of_paths:
             path_1 = path.my_entry1.get()
@@ -143,6 +153,10 @@ class CheckFile(object):
                 dif_status[number].config(text='-')
 
             number += 1
+
+        show_info(report_status)
+        show_info(report_info_1)
+        show_info(report_info_2)
 
     @staticmethod
     def filtered_files(path, start_date, end_date, format_set):
@@ -194,7 +208,7 @@ class Report(object):
         pass
 
     @staticmethod
-    def save_raport(data, start_date, end_date):
+    def save_raport(data, start_date, end_date, report_status, report_info_1, report_info_2):
 
         now = datetime.datetime.now()
         dt_string = now.strftime("%d-%m-%Y_%H-%M-%S")
@@ -211,6 +225,19 @@ class Report(object):
                 return file_name[:15] + "..." + file_name[-18:]
             else:
                 return file_name
+
+        def show_info(info):
+            if info == report_status:
+                report_status.config(text='Zapisano raport')
+
+            elif info == report_info_1:
+                report_info_1.config(text="Nazwa raportu: "+report_name)
+
+            elif info == report_info_2:
+                report_path = os.getcwd()
+                report_info_2.config(text="Ścieżka raportu: "+report_path)
+
+
 
         with open(report_name, 'w', encoding="utf-8") as outfile:
             outfile.write("ZAKRES DAT: ")
@@ -250,3 +277,7 @@ class Report(object):
                     outfile.write("-" * 108)
                     num_f +=1
                 num_p += 1
+
+        show_info(report_status)
+        show_info(report_info_1)
+        show_info(report_info_2)

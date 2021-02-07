@@ -68,14 +68,15 @@ obj_with_diff = None
 def obj_diff():
     global obj_with_diff
     obj_with_diff = logic.CheckFile(list_of_paths, cal_1.get_date(), cal_2.get_date())
-    obj_with_diff.differ(dif_status)
+    obj_with_diff.differ(dif_status, report_status, report_info_1, report_info_2)
 # UTWORZENIE GŁÓWNYCH PRZYCISKÓW
 main_batton_start = ttk.Button(frame_buttons, text="PORÓWNAJ FOLDERY",
                                command=(lambda: obj_diff()))
 main_batton_start.grid(column=0, row=0, padx=18, pady=10)
 
 main_batton_raport = ttk.Button(frame_buttons, text="ZAPISZ RAPORT", command=lambda:
-logic.Report.save_raport(logic.CheckFile.data_for_report, cal_1.get_date(), cal_2.get_date()) if obj_with_diff
+logic.Report.save_raport(logic.CheckFile.data_for_report, cal_1.get_date(), cal_2.get_date(),
+                         report_status, report_info_1, report_info_2 ) if obj_with_diff
                                                                                                  is not None
 else print("Najpierw porównaj foldery"))
 main_batton_raport.grid(column=1, row=0, padx=18, pady=10)
@@ -118,12 +119,11 @@ frame_raport.grid(column=0, row=3, pady=10, padx=10)
 frame_raport.config(height=120, width=525)
 
 # WYDRUK INFORMACJI O PLIKU RAPORTU I ŚCIEŻCE W KTÓREJ ZOSTAŁ UTWORZONY
-raport_status = Label(frame_raport, text="Trwa zapis raportu...")
-raport_status.grid(column=0, row=0)
-raport_info_1 = Label(frame_raport, text="Nazwa pliku: raport_file_01-02-2021_12-47-39.txt")
-raport_info_1.grid(column=0, row=1)
-raport_info_2 = Label(frame_raport, text="Ścieżka: /home/mariusz/PycharmProjects/DIFFOL/venv/bin/python "
-                                         "/home/mariusz/PycharmProjects/DIFFOL/main.py", wraplength=500)
-raport_info_2.grid(column=0, row=2)
+report_status = Label(frame_raport, text="Brak danych do raportu")
+report_status.grid(column=0, row=0)
+report_info_1 = Label(frame_raport, text="Nazwa raportu: -")
+report_info_1.grid(column=0, row=1)
+report_info_2 = Label(frame_raport, text="Ścieżka raportu: -", wraplength=500)
+report_info_2.grid(column=0, row=2)
 
 root.mainloop()
