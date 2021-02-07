@@ -1,6 +1,4 @@
-from tkinter import *
 from tkinter import ttk
-from tkcalendar import *
 from tkinter import filedialog
 import datetime
 import os
@@ -96,12 +94,15 @@ class MyPath(object):
 
 
 class CheckFile(object):
+    data_for_report = {}
+
     def __init__(self, list_of_paths, start_date, end_date):
         self.list_of_paths = list_of_paths
         self.start_date = start_date
         self.end_date = end_date
+        CheckFile.data_for_report = {}
 
-    def differ(self, frame_infos, dif_status):
+    def differ(self, dif_status):
         # DLA KAŻDEGO OBIEKTU Z ŚCIEŻKAMI POBIERA ŚCIEZKI I FORMATY
         number = 0
 
@@ -127,19 +128,13 @@ class CheckFile(object):
                     else:
                         dif_status[number].config(text='V')
 
-
-
-
                     # LISTY POMOCNOCZE DO SPRAWDZENIA CZY ELEMENT Z ROZNICY WYNIKA Z BRAKU PLIKU CZY Z MODYFIKACJI
                     # SPRAWDZENIE ODBYWA SIE NA PODSTAWIE PIERWSZEGO ELEMENTU Z TUPLI CZYLI PO NAZWIE
                     exist_check_list_a = [file[0] for file in files_a]
                     exist_check_list_b = [file[0] for file in files_b]
 
-                    CheckFile.prepare_to_raport(path_1, path_2, files_b, files_dif_a_b, exist_check_list_b, 1)
-                    print("==============")
-                    CheckFile.prepare_to_raport(path_2, path_1, files_a, files_dif_b_a, exist_check_list_a, 2)
-
-
+                    CheckFile.prepare_to_raport(number, path_1, path_2, files_b, files_dif_a_b, exist_check_list_b, 1)
+                    CheckFile.prepare_to_raport(number, path_2, path_1, files_a, files_dif_b_a, exist_check_list_a, 2)
 
                 except BaseException as e:
                     print("Błąd: ", e)
@@ -164,16 +159,14 @@ class CheckFile(object):
                 if str(data_1) <= file_date[:10] <= str(data_2):
                     yield file, file_date
 
-
     @staticmethod
-    def prepare_to_raport(path_1, path_2, files, files_dif, check_list, num_of_path):
+    def prepare_to_raport(number, path_1, path_2, files, files_dif, check_list, num_of_path):
         # SPRAWDZANIE CZY PLIK Z ZBIORU ROZNIC ZNAJDUJE SIE W PLIKACH DRUGIEGO FOLDERU
         # JEŚLI TAK TO ZNACZY ZE ROZNIA SIE DATA A JESLI GO NIE MA TO ZNACZY ZE BRAKUJE TAKIEGO PLIKU
         # WYKORZYSTANO MODUL ANYTHING DO SPRAWDZENIA INDEKSU TUPLI ZNAJAC TYLKO NAZWĘ DZIEKI CZEMU MOZNA UZySKAC PEŁNE
         # DANE O NAZWIE I DACIE
 
         lista_of_file_pairs = []
-        list_dict_data = {}
 
         for file_dif in files_dif:
 
@@ -181,35 +174,75 @@ class CheckFile(object):
                 if num_of_path == 1:
                     files = list(files)
                     # SPRAWDZENIE INDEKSU TUPLI W LIŚCIE ZNAJAC TYLKO PIERWSZY ELEMENT TUPLI
+                    # W DRUGĄ STRONE NIE ROBIMY TEGO SPRAWDZENIA BO BY SIĘ DUBLOWAŁ WYNIK
                     index = files.index((file_dif[0], any))
-                    lista_of_file_pairs.append((file_dif,files[index]))
-                else:
-                    files = list(files)
-                    # SPRAWDZENIE INDEKSU TUPLI W LIŚCIE ZNAJAC TYLKO PIERWSZY ELEMENT TUPLI
-                    index = files.index((file_dif[0], any))
-                    lista_of_file_pairs.append((files[index], file_dif))
-
-                # print("Plik", file_dif, "istnieje w ścieżce", path_2, " ale ma inną datę")
-                files = list(files)
-
-                index = files.index((file_dif[0], any))
-                # print("Plik z sciezki", path_2, " to:", files[index])
+                    lista_of_file_pairs.append((file_dif, files[index]))
 
             else:
                 if num_of_path == 1:
-                    lista_of_file_pairs.append((file_dif, "----------"))
+                    lista_of_file_pairs.append((file_dif, ('-', '-')))
                 else:
-                    lista_of_file_pairs.append(("----------", file_dif))
-                # print("Pliku", file_dif, "brakuje w ścieżce", path_2)
+                    lista_of_file_pairs.append((('-', '-'), file_dif))
 
-        list_dict_data.setdefault((path_1, path_2), lista_of_file_pairs)
+        CheckFile.data_for_report.setdefault((number, path_1, path_2), lista_of_file_pairs)
 
-        print(list_dict_data)
 
-class Raport(object):
+class Report(object):
     def __init__(self):
         pass
 
     @staticmethod
-    def save_raport(path):
-        pass
+    def save_raport(data, start_date, end_date):
+
+        now = datetime.datetime.now()
+        dt_string = now.strftime("%d-%m-%Y_%H-%M-%S")
+        report_name = "report_file_"+str(dt_string)+".txt"
+
+        def comment(file_name):
+            if file_name == '-':
+                return "BRAK PLIKU W TEJ ŚCIEŻCE"
+            else:
+                return ""
+
+        def string_cut(file_name):
+            if len(file_name) > 40:
+                return file_name[:15] + "..." + file_name[-18:]
+            else:
+                return file_name
+
+        with open(report_name, 'w', encoding="utf-8") as outfile:
+            outfile.write("ZAKRES DAT: ")
+            outfile.write((str(start_date)+" --> "+str(end_date)))
+
+            num = 1
+            for k, v in data.items():
+
+                file_name_a = v[0][0][0]
+                date_file_a = v[0][0][1]
+
+                file_name_b = v[0][1][0]
+                date_file_b = v[0][1][1]
+
+                if num % 2 != 0:
+
+                    outfile.write("\n\nŚCIEŻKA {}A {}".format(k[0] + 1, k[1]))
+                    outfile.write("\nŚCIEŻKA {}B {}\n".format(k[0] + 1, k[2]))
+                    outfile.write('\n\n{:^5} {:^40} {:^30} {:^30}\n'.format('LP.', 'NAZWA PLIKU', 'DATA PLIKU',
+                                                                            'UWAGA'))
+                    outfile.write("-" * 108)
+                    num = 1
+
+                if file_name_a != '-' and file_name_b != '-':
+                    comment_1 = "RÓŻNICA W DATACH ZAPISU PLIKU"
+                    comment_2 = ""
+                else:
+                    comment_1 = comment(file_name_a)
+                    comment_2 = comment(file_name_b)
+
+                outfile.write('\n{:^5} {:^40} {:^30} {:^30}'.format(num, string_cut(file_name_a), date_file_a,
+                                                                    comment_1))
+                outfile.write('\n{:^5} {:^40} {:^30} {:^30}\n'.format('', string_cut(file_name_b), date_file_b,
+                                                                      comment_2))
+                outfile.write("-" * 108)
+
+                num += 1
