@@ -214,35 +214,37 @@ class Report(object):
             outfile.write("ZAKRES DAT: ")
             outfile.write((str(start_date)+" --> "+str(end_date)))
 
-            num = 1
+            num_p = 0
+
             for k, v in data.items():
 
-                file_name_a = v[0][0][0]
-                date_file_a = v[0][0][1]
-
-                file_name_b = v[0][1][0]
-                date_file_b = v[0][1][1]
-
-                if num % 2 != 0:
-
-                    outfile.write("\n\nŚCIEŻKA {}A {}".format(k[0] + 1, k[1]))
+                if num_p %2 == 0:
+                    outfile.write("\n\n\n\nŚCIEŻKA {}A {}".format(k[0] + 1, k[1]))
                     outfile.write("\nŚCIEŻKA {}B {}\n".format(k[0] + 1, k[2]))
-                    outfile.write('\n\n{:^5} {:^40} {:^30} {:^30}\n'.format('LP.', 'NAZWA PLIKU', 'DATA PLIKU',
-                                                                            'UWAGA'))
+                    outfile.write('\n\n{:^5} {:^40} {:^30} {:^30}\n'.format('LP.', 'NAZWA PLIKU (A/B)',
+                                                                            'DATA PLIKU (A/B)','UWAGA'))
                     outfile.write("-" * 108)
-                    num = 1
 
-                if file_name_a != '-' and file_name_b != '-':
-                    comment_1 = "RÓŻNICA W DATACH ZAPISU PLIKU"
-                    comment_2 = ""
-                else:
-                    comment_1 = comment(file_name_a)
-                    comment_2 = comment(file_name_b)
+                    num_f = 1
 
-                outfile.write('\n{:^5} {:^40} {:^30} {:^30}'.format(num, string_cut(file_name_a), date_file_a,
-                                                                    comment_1))
-                outfile.write('\n{:^5} {:^40} {:^30} {:^30}\n'.format('', string_cut(file_name_b), date_file_b,
-                                                                      comment_2))
-                outfile.write("-" * 108)
+                for i in v:
+                    file_name_a = i[0][0]
+                    date_file_a = i[0][1]
 
-                num += 1
+                    file_name_b = i[1][0]
+                    date_file_b = i[1][1]
+
+                    if file_name_a != '-' and file_name_b != '-':
+                        comment_1 = "RÓŻNICA W DATACH ZAPISU PLIKU"
+                        comment_2 = ""
+                    else:
+                        comment_1 = comment(file_name_a)
+                        comment_2 = comment(file_name_b)
+
+                    outfile.write('\n{:^5} {:^40} {:^30} {:^30}'.format(num_f, string_cut(file_name_a), date_file_a,
+                                                                        comment_1))
+                    outfile.write('\n{:^5} {:^40} {:^30} {:^30}\n'.format('', string_cut(file_name_b), date_file_b,
+                                                                          comment_2))
+                    outfile.write("-" * 108)
+                    num_f +=1
+                num_p += 1
