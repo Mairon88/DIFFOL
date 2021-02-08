@@ -256,6 +256,10 @@ class Report(object):
 
                     num_f = 1
 
+                    if v == []:
+                        outfile.write('\n\n{}\n'.format("BRAK RÓŻNIC"))
+
+
                 for i in v:
                     file_name_a = i[0][0]
                     date_file_a = i[0][1]

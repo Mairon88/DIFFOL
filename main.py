@@ -125,5 +125,6 @@ report_info_1 = Label(frame_raport, text="Nazwa raportu: -")
 report_info_1.grid(column=0, row=1)
 report_info_2 = Label(frame_raport, text="Ścieżka raportu: -", wraplength=500)
 report_info_2.grid(column=0, row=2)
-
+report_width= Label(frame_raport, text=" "*460, wraplength=500)
+report_width.grid(column=0, row=3)
 root.mainloop()
