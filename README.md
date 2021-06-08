@@ -1,2 +1,2 @@
 ## DIFFOL
-### Program that compares selected folders and prints reports with differences
+### Program compares selected folders and prints reports with differences
