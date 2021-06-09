@@ -76,8 +76,8 @@ main_batton_start.grid(column=0, row=0, padx=18, pady=10)
 
 main_batton_raport = ttk.Button(frame_buttons, text="ZAPISZ RAPORT", command=lambda:
 logic.Report.save_raport(logic.CheckFile.data_for_report, cal_1.get_date(), cal_2.get_date(),
-                         report_status, report_info_1, report_info_2 ) if obj_with_diff
-                                                                                                 is not None
+                         report_status, report_info_1, report_info_2 ) if obj_with_diff is not None
+
 else print("Najpierw porównaj foldery"))
 main_batton_raport.grid(column=1, row=0, padx=18, pady=10)
 
